@@ -16,6 +16,3 @@ Slightly less destructively, a stacktrace can also be obtained by visiting `http
 ## Configuration
 Not much.
 The http server port can be configured via the `STACKER_PORT` environment variable.
-
-## LICENSE
-Nope.
