@@ -6,7 +6,10 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 )
+
+const packageName = "github.com/cromega/stacker"
 
 func init() {
 	setSigHandler()
@@ -18,15 +21,14 @@ func setSigHandler() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		<-c
-		panic("Interrupt signal received.")
+		fmt.Printf("\nInterrupt signal received:\n\n %s", getTrace())
+		os.Exit(1)
 	}()
 }
 
 func setHttpHandler() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		trace := make([]byte, 1024*1024)
-		len := runtime.Stack(trace, true)
-		fmt.Fprintf(w, string(trace[:len]))
+		fmt.Fprintf(w, getTrace())
 	})
 
 	port := os.Getenv("STACKER_PORT")
@@ -36,4 +38,28 @@ func setHttpHandler() {
 	go func() {
 		http.ListenAndServe("localhost:"+port, nil)
 	}()
+}
+
+func getTrace() string {
+	trace := make([]byte, 102400)
+	size := runtime.Stack(trace, true)
+	if size > len(trace) {
+		trace = make([]byte, size)
+		runtime.Stack(trace, true)
+	}
+
+	return traceWithoutOwnGoroutines(string(trace[:size]))
+}
+
+func traceWithoutOwnGoroutines(trace string) (filteredTrace string) {
+	goroutines := strings.Split(trace, "\n\n")
+	for _, goroutine := range goroutines {
+		if strings.Contains(goroutine, packageName) {
+			continue
+		}
+
+		filteredTrace += goroutine + "\n\n"
+	}
+
+	return
 }
