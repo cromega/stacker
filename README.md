@@ -10,7 +10,7 @@ import (
   _ "github.com/cromega/stacker"
 )
 ```
-Now Ctrl+C-ing your application will cause it to panic printing a full stacktrace.  
+Now Ctrl+C-ing your application will cause it to dump a full stacktrace and exit.  
 Slightly less destructively, a stacktrace can also be obtained by visiting `http://localhost:6000` while your process is running.
 
 ## Configuration
